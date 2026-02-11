@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { db } from '../db';
 import { conversationsTable, messagesTable } from '../db/schema';
 import router from '../agents/router';
+import { getConversation } from '../utils/context';
 
 const chat = new Hono();
 
@@ -30,7 +31,10 @@ chat.post('/message', async (c) => {
     .values({ conversationId, role: "user", content })
     .returning();
 
-  const ai_response = await router(content)
+  // Fetch last 5 messages (before the one just inserted) for context
+  const history = await getConversation(conversationId)
+
+  const ai_response = await router(content, history)
 
   await db
     .insert(messagesTable)

@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { orderSubAgent } from "../agents/order";
 import { billingSubAgent } from "../agents/billing";
 import { supportSubAgent } from "../agents/support";
+import type { Message } from '../db/schema';
 
 
 const outputSchema = z.object({
@@ -12,10 +13,17 @@ const outputSchema = z.object({
     refinedContext: z.string().nullable(),
 })
 
-const supervisor = async(prompt:string) => {
+const buildContextBlock = (history: Message[]): string => {
+  if (!history.length) return ''
+  const lines = history.map(m => `${m.role === 'agent' ? 'Agent' : 'User'}: ${m.content}`)
+  return `Recent conversation history:\n${lines.join('\n')}\n\n`
+}
+
+const supervisor = async (prompt: string, history: Message[]) => {
+  const contextBlock = buildContextBlock(history)
   const result = await generateText({
     model: openai('gpt-5'),
-    prompt: prompt,
+    prompt: `${contextBlock}Current message: ${prompt}`,
     output: Output.object({schema:outputSchema}),
     system: `You are a routing supervisor agent in a multi-agent customer support system.
             Your responsibilities:
@@ -71,8 +79,8 @@ const supervisor = async(prompt:string) => {
   return JSON.parse(result.text)
 }
 
-export default async (prompt:string) => {
-  const supervisorResponse = await supervisor(prompt)
+export default async (prompt: string, history: Message[] = []) => {
+  const supervisorResponse = await supervisor(prompt, history)
   switch(supervisorResponse.intent){
     case "support":
       return supportSubAgent(supervisorResponse.refinedContext)

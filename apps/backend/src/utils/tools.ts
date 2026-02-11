@@ -95,7 +95,7 @@ export const getConversationHistoryTool = tool({
       .select()
       .from(conversationsTable)
       .where(eq(conversationsTable.id, conversationId))
-      .limit(1)
+      .limit(10)
 
     if (!convo.length) return null
 
