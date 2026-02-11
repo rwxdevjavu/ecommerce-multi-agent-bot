@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const BACKEND = "http://localhost:3000";
 
@@ -15,12 +15,31 @@ type Conversation = {
 type Message = {
   id: string;
   conversationId: string;
-  role: "user" | "agent" | "system";
+  role: "user" | "agent";
   content: string;
   createdAt: string;
 };
 
 type ConversationDetail = Conversation & { messages: Message[] };
+
+function TypingIndicator() {
+  return (
+    <div className="self-start bg-zinc-100 dark:bg-zinc-800 px-4 py-3 rounded-xl rounded-bl-sm flex items-center gap-1.5">
+      <span
+        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+        style={{ animationDelay: "0ms" }}
+      />
+      <span
+        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+        style={{ animationDelay: "150ms" }}
+      />
+      <span
+        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+        style={{ animationDelay: "300ms" }}
+      />
+    </div>
+  );
+}
 
 export default function Home() {
   const [convos, setConvos] = useState<Conversation[]>([]);
@@ -29,6 +48,12 @@ export default function Home() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom whenever messages change or typing indicator appears
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [selected?.messages, sending]);
 
   useEffect(() => {
     fetch(`${BACKEND}/chat/conversation`)
@@ -43,6 +68,7 @@ export default function Home() {
     const content = input.trim();
     setInput("");
 
+    // Optimistically add the user message to the UI
     const userMsg: Message = {
       id: crypto.randomUUID(),
       conversationId: selected.id,
@@ -61,6 +87,7 @@ export default function Home() {
     });
 
     if (res.ok) {
+      // Backend now returns the full agent message row with real id + createdAt
       const agentMsg: Message = await res.json();
       setSelected((prev) =>
         prev ? { ...prev, messages: [...prev.messages, agentMsg] } : prev
@@ -147,7 +174,7 @@ export default function Home() {
                       "max-w-[68%] px-4 py-3 rounded-xl text-sm leading-relaxed",
                       m.role === "user"
                         ? "self-end bg-blue-500 text-white rounded-br-sm"
-                        : "self-start bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-bl-sm"
+                        : "self-start bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-bl-sm",
                     ].join(" ")}
                   >
                     <span className="block text-[11px] font-semibold tracking-wider uppercase mb-1 opacity-60">
@@ -157,6 +184,12 @@ export default function Home() {
                   </div>
                 ))
               )}
+
+              {/* Typing indicator — shown while waiting for agent response */}
+              {sending && <TypingIndicator />}
+
+              {/* Scroll anchor */}
+              <div ref={bottomRef} />
             </div>
           </>
         )}

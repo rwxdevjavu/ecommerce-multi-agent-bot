@@ -13,6 +13,7 @@
     "drizzle-orm": "^0.45.1",
     "drizzle-seed": "^0.3.1",
     "hono": "^4.11.9",
+    "hono-rate-limiter": "^0.5.3",
     "nitro": "^3.0.1-alpha.2",
     "pg": "^8.18.0",
     "rollup": "^4.57.1",

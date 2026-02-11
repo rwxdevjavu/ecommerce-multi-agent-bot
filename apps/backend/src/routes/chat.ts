@@ -36,12 +36,12 @@ chat.post('/message', async (c) => {
 
   const ai_response = await router(content, history)
 
-  await db
+  const [agentMessage] = await db
     .insert(messagesTable)
     .values({ conversationId, role: "agent", content: ai_response })
     .returning();
 
-  return c.json({ content:ai_response }, 201);
+  return c.json(agentMessage, 201);
 });
 
 // GET /conversation — list all conversations
