@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { hc } from "hono/client";
+import type { AppType } from "../../backend/src/index";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3000";
+const client = hc<AppType>(
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3000"
+);
 
 type Conversation = {
   id: string;
@@ -50,15 +54,14 @@ export default function Home() {
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom whenever messages change or typing indicator appears
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selected?.messages, sending]);
 
   useEffect(() => {
-    fetch(`${BACKEND}/chat/conversation`)
+    client.chat.conversation.$get()
       .then((r) => r.json())
-      .then(setConvos)
+      .then((data) => setConvos(data as Conversation[]))
       .finally(() => setLoadingList(false));
   }, []);
 
@@ -68,7 +71,6 @@ export default function Home() {
     const content = input.trim();
     setInput("");
 
-    // Optimistically add the user message to the UI
     const userMsg: Message = {
       id: crypto.randomUUID(),
       conversationId: selected.id,
@@ -80,15 +82,12 @@ export default function Home() {
       prev ? { ...prev, messages: [...prev.messages, userMsg] } : prev
     );
 
-    const res = await fetch(`${BACKEND}/chat/message`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId: selected.id, content }),
+    const res = await client.chat.message.$post({
+      json: { conversationId: selected.id, content },
     });
 
     if (res.ok) {
-      // Backend now returns the full agent message row with real id + createdAt
-      const agentMsg: Message = await res.json();
+      const agentMsg = await res.json() as Message;
       setSelected((prev) =>
         prev ? { ...prev, messages: [...prev.messages, agentMsg] } : prev
       );
@@ -99,8 +98,8 @@ export default function Home() {
 
   async function openConvo(id: string) {
     setLoadingDetail(true);
-    const res = await fetch(`${BACKEND}/chat/conversation/${id}`);
-    const data: ConversationDetail = await res.json();
+    const res = await client.chat.conversation[":id"].$get({ param: { id } });
+    const data = await res.json() as ConversationDetail;
     setSelected(data);
     setLoadingDetail(false);
   }
@@ -185,10 +184,7 @@ export default function Home() {
                 ))
               )}
 
-              {/* Typing indicator — shown while waiting for agent response */}
               {sending && <TypingIndicator />}
-
-              {/* Scroll anchor */}
               <div ref={bottomRef} />
             </div>
           </>
