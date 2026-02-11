@@ -3,6 +3,7 @@ import { generateText, stepCountIs } from "ai"
 import { getConversationHistoryTool } from "../utils/tools"
 
 export async function supportSubAgent(refinedContext: string): Promise<string> {
+  "use workflow";
   const { text } = await generateText({
     model: openai("gpt-4o-mini"),
     system: `

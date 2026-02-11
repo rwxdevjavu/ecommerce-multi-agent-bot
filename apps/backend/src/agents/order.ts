@@ -3,6 +3,7 @@ import { generateText, stepCountIs } from "ai"
 import { findOrderByIdTool, findOrdersByProductTool } from "../utils/tools"
 
 export async function orderSubAgent(refinedContext: string): Promise<string> {
+  "use workflow";
   const response = await generateText({
     model: openai("gpt-4o-mini"),
     system: `

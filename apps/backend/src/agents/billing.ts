@@ -3,6 +3,7 @@ import { generateText, stepCountIs } from "ai"
 import { findPaymentByIdTool, findPaymentByOrderIdTool } from "../utils/tools"
 
 export async function billingSubAgent(refinedContext: string): Promise<string> {
+  "use workflow";
   const { text } = await generateText({
     model: openai("gpt-4o-mini"),
     system: `

@@ -79,6 +79,7 @@ const supervisor = async (prompt: string, history: Message[]) => {
 }
 
 export default async (prompt: string, history: Message[] = []): Promise<string> => {
+  "use workflow";
   const supervisorResponse = await supervisor(prompt, history)
   const context = supervisorResponse.refinedContext ?? prompt
   switch(supervisorResponse.intent){
