@@ -75,20 +75,22 @@ const supervisor = async (prompt: string, history: Message[]) => {
             - Contain no explanation of classification.
 `
   });
-  console.log(result.text)
-  return JSON.parse(result.text)
+  return result.output
 }
 
-export default async (prompt: string, history: Message[] = []) => {
+export default async (prompt: string, history: Message[] = []): Promise<string> => {
   const supervisorResponse = await supervisor(prompt, history)
+  const context = supervisorResponse.refinedContext ?? prompt
   switch(supervisorResponse.intent){
     case "support":
-      return supportSubAgent(supervisorResponse.refinedContext)
+      return supportSubAgent(context)
     case "billing":
-      return billingSubAgent(supervisorResponse.refinedContext)
+      return billingSubAgent(context)
     case "order":
-      return orderSubAgent(supervisorResponse.refinedContext)
+      return orderSubAgent(context)
     case "unknown":
+      return "I'm not sure how to help with that. Please contact support if you need further assistance."
+    default:
       return "I'm not sure how to help with that. Please contact support if you need further assistance."
   }
 }
