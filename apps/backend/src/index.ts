@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { rateLimiter } from 'hono-rate-limiter'
 import Chat from './routes/chat'
+import Orders from './routes/orders'
 
 const app = new Hono()
 
@@ -26,6 +27,7 @@ const app = new Hono()
   .get('/health', (c) => c.text('OK'))
 
   .route('/chat', Chat)
+  .route('/orders', Orders)
 
 // Export the type for use with hc<AppType> on the frontend
 export type AppType = typeof app
