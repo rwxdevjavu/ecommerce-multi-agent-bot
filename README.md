@@ -1,135 +1,106 @@
-# Turborepo starter
+# Swades AI — Multi-Agent Customer Support
 
-This Turborepo starter is maintained by the Turborepo core team.
+An AI-powered customer support system built with a multi-agent architecture. A supervisor agent classifies incoming messages and routes them to specialized sub-agents that query real database records to respond accurately.
 
-## Using this example
+## Architecture
 
-Run the following command:
+![Architecture](./architecture.png)
 
-```sh
-npx create-turbo@latest
+## Apps
+
+| App | Description |
+|-----|-------------|
+| `web` | Next.js 16 chat UI with conversation sidebar and real-time typing indicator |
+| `backend` | Hono API server with multi-agent pipeline, rate limiting, and Drizzle ORM |
+
+## Tech Stack
+
+**Frontend**
+- Next.js 16, React 19, Tailwind CSS v4
+- Hono RPC client (`hc<AppType>`) for end-to-end type-safe API calls
+
+**Backend**
+- Hono v4 (Bun runtime)
+- AI SDK v6 — `generateText`, `Output.object`, `stopWhen: stepCountIs`
+- OpenAI `gpt-4o` (router), `gpt-4o-mini` (sub-agents)
+- Drizzle ORM + PostgreSQL (Supabase)
+- `hono-rate-limiter` — 60 req/min global, 10 req/min on `/chat/message`
+- Workflow DevKit (`"use workflow"`) — durable agent execution
+
+## Project Structure
+
+```
+swades.ai/
+├── apps/
+│   ├── web/                     # Next.js frontend
+│   │   └── app/page.tsx         # Chat UI
+│   └── backend/
+│       └── src/
+│           ├── index.ts         # Hono app entry, AppType export
+│           ├── agents/
+│           │   ├── router.ts    # Supervisor — classifies + routes
+│           │   ├── order.ts     # Order sub-agent
+│           │   ├── billing.ts   # Billing sub-agent
+│           │   └── support.ts   # Support sub-agent
+│           ├── db/
+│           │   ├── schema.ts    # Drizzle schema
+│           │   └── seed.ts      # Seed data (1 user, 5 orders, 5 payments)
+│           ├── routes/
+│           │   └── chat.ts      # POST /message, GET/DELETE /conversation
+│           └── utils/
+│               ├── tools.ts     # AI SDK tools (findOrder, findPayment, etc.)
+│               └── context.ts   # getConversation — last 6 messages from DB
+└── packages/
+    ├── ui/                      # Shared React component library
+    ├── eslint-config/
+    └── typescript-config/
 ```
 
-## What's inside?
+### Environment Variables
 
-This Turborepo includes the following packages/apps:
+**`apps/backend/.env`**
+```env
+DATABASE_URL=your_postgres_connection_string
+OPENAI_API_KEY=your_openai_api_key
+```
 
-### Apps and Packages
+**`apps/web/.env.local`**
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3000
+```
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Install & Run
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+```sh
+# Install dependencies
+bun install
 
-### Utilities
+# Push schema to database
+cd apps/backend && bun run db:push
 
-This Turborepo has some additional tools already setup for you:
+# Seed the database
+bun run db:seed
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+# Run all apps (from root)
+turbo dev
+
+# Or run individually
+turbo dev --filter=web      # http://localhost:3001
+turbo dev --filter=backend  # http://localhost:3000
+```
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+```sh
 turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## API Endpoints
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/chat/message` | Send a message, get AI response |
+| `GET` | `/chat/conversation` | List all conversations |
+| `GET` | `/chat/conversation/:id` | Get conversation with messages |
+| `DELETE` | `/chat/conversation/:id` | Delete a conversation |
+| `GET` | `/health` | Health check |
