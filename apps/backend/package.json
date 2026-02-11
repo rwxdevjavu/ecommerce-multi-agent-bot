@@ -1,0 +1,27 @@
+{
+  "name": "backend",
+  "scripts": {
+    "dev": "nitro dev",
+    "build": "nitro build",
+    "db:seed": "bun run src/db/seed.ts",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.26",
+    "ai": "^6.0.78",
+    "dotenv": "^17.2.4",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-seed": "^0.3.1",
+    "hono": "^4.11.9",
+    "nitro": "^3.0.1-alpha.2",
+    "pg": "^8.18.0",
+    "rollup": "^4.57.1",
+    "workflow": "^4.1.0-beta.54",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.9"
+  }
+}

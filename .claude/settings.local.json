@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del /f \"C:\\\\Users\\\\ASUS\\\\github.com\\\\swades.ai\\\\apps\\\\web\\\\lib\\\\api.ts\")",
+      "Bash(node -e:*)"
+    ]
+  }
+}

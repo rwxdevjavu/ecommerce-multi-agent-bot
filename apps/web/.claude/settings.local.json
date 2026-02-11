@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun add:*)",
+      "Bash(del \"C:\\\\Users\\\\ASUS\\\\github.com\\\\swades.ai\\\\apps\\\\web\\\\app\\\\page.module.css\")"
+    ]
+  }
+}
