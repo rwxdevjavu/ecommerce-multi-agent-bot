@@ -26,21 +26,37 @@ type Message = {
 
 type ConversationDetail = Conversation & { messages: Message[] };
 
+const STATUS_PHRASES = [
+  "Thinking",
+  "Searching",
+  "Looking that up",
+  "Checking records",
+  "Analyzing",
+  "Processing",
+  "Fetching details",
+  "On it",
+];
+
 function TypingIndicator() {
+  const [phrase, setPhrase] = useState(
+    () => STATUS_PHRASES[Math.floor(Math.random() * STATUS_PHRASES.length)]
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPhrase(STATUS_PHRASES[Math.floor(Math.random() * STATUS_PHRASES.length)]);
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <div className="self-start bg-zinc-100 dark:bg-zinc-800 px-4 py-3 rounded-xl rounded-bl-sm flex items-center gap-1.5">
-      <span
-        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
-        style={{ animationDelay: "0ms" }}
-      />
-      <span
-        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
-        style={{ animationDelay: "150ms" }}
-      />
-      <span
-        className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
-        style={{ animationDelay: "300ms" }}
-      />
+    <div className="self-start bg-zinc-100 dark:bg-zinc-800 px-4 py-3 rounded-xl rounded-bl-sm flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+      <span className="text-xs text-zinc-400">{phrase}</span>
     </div>
   );
 }

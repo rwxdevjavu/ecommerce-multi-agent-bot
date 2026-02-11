@@ -1,22 +1,27 @@
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { db } from '../db';
 import { conversationsTable, messagesTable } from '../db/schema';
 import router from '../agents/router';
 import { getConversation } from '../utils/context';
 
+const messageSchema = z.object({
+  conversationId: z.string().uuid(),
+  content: z.string().min(1),
+});
+
 const chat = new Hono()
 
   // POST /message — send a message and get an AI response
   .post('/message', async (c) => {
-    const { conversationId, content } = await c.req.json<{
-      conversationId: string;
-      content: string;
-    }>();
+    const parsed = messageSchema.safeParse(await c.req.json());
 
-    if (!conversationId || !content) {
+    if (!parsed.success) {
       return c.json({ error: 'conversationId and content are required' }, 400);
     }
+
+    const { conversationId, content } = parsed.data;
 
     const conversation = await db
       .select()
