@@ -1,9 +1,9 @@
 import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
+import { generateText, stepCountIs } from "ai"
 import { findOrderByIdTool, findOrdersByProductTool } from "../utils/tools"
 
 export async function orderSubAgent(refinedContext: string): Promise<string> {
-  const { text } = await generateText({
+  const response = await generateText({
     model: openai("gpt-4o-mini"),
     system: `
 You are an Order Support Agent for a customer support system.
@@ -30,9 +30,10 @@ Be concise, professional, and empathetic.
       findOrdersByProductTool,
     },
     toolChoice: "auto",
-    maxSteps: 3,
+    stopWhen: stepCountIs(5),
     prompt: refinedContext,
   })
 
-  return text
+  console.log(response)
+  return response.text
 }

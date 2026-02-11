@@ -67,6 +67,7 @@ const supervisor = async(prompt:string) => {
             - Contain no explanation of classification.
 `
   });
+  console.log(result.text)
   return JSON.parse(result.text)
 }
 

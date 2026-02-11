@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
+import { generateText, stepCountIs } from "ai"
 import { findPaymentByIdTool, findPaymentByOrderIdTool } from "../utils/tools"
 
 export async function billingSubAgent(refinedContext: string): Promise<string> {
@@ -33,7 +33,7 @@ Be concise, professional, and reassuring.
       findPaymentByOrderIdTool,
     },
     toolChoice: "auto",
-    maxSteps: 3,
+    stopWhen: stepCountIs(5),
     prompt: refinedContext,
   })
 

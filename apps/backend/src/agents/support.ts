@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
+import { generateText, stepCountIs } from "ai"
 import { getConversationHistoryTool } from "../utils/tools"
 
 export async function supportSubAgent(refinedContext: string): Promise<string> {
@@ -32,7 +32,7 @@ Guidelines:
       getConversationHistoryTool,
     },
     toolChoice: "auto",
-    maxSteps: 2,
+    stopWhen: stepCountIs(3),
     prompt: refinedContext,
   })
 
