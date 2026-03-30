@@ -1,4 +1,4 @@
-# Swades AI — Multi-Agent Customer Support
+# Multi-Agent Customer Support
 
 An AI-powered customer support system built with a multi-agent architecture. A supervisor agent classifies incoming messages and routes them to specialized sub-agents that query real database records to respond accurately.
 
